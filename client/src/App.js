@@ -19,6 +19,12 @@ import Register from './pages/Register';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
+// Nouvelles pages pour l'itération 3
+import Reminders from './pages/Reminders';
+import Documents from './pages/Documents';
+import EmailTemplates from './pages/EmailTemplates';
+import LetterTemplates from './pages/LetterTemplates';
+
 const App = () => {
     const { isAuthenticated, loading } = useAuth();
 
@@ -53,6 +59,13 @@ const App = () => {
                 <Route path="offers/:id" element={<OfferDetail />} />
                 <Route path="applications" element={<Applications />} />
                 <Route path="applications/:id" element={<ApplicationDetail />} />
+
+                {/* Nouvelles routes pour l'itération 3 */}
+                <Route path="reminders" element={<Reminders />} />
+                <Route path="documents" element={<Documents />} />
+                <Route path="email-templates" element={<EmailTemplates />} />
+                <Route path="letter-templates" element={<LetterTemplates />} />
+
                 <Route path="profile" element={<Profile />} />
             </Route>
 
@@ -62,4 +75,3 @@ const App = () => {
 };
 
 export default App;
-

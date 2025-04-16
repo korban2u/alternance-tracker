@@ -9,7 +9,11 @@ import {
   BriefcaseIcon,
   DocumentTextIcon,
   UserIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  EnvelopeIcon,
+  DocumentDuplicateIcon,
+  BellIcon,
+  FolderIcon
 } from '@heroicons/react/24/outline';
 
 const navigation = [
@@ -18,6 +22,11 @@ const navigation = [
   { name: 'Entreprises', href: '/companies', icon: BuildingOfficeIcon },
   { name: 'Offres', href: '/offers', icon: BriefcaseIcon },
   { name: 'Candidatures', href: '/applications', icon: DocumentTextIcon },
+  // Nouvelles entrées pour l'itération 3
+  { name: 'Rappels', href: '/reminders', icon: BellIcon },
+  { name: 'Documents', href: '/documents', icon: FolderIcon },
+  { name: 'Templates Email', href: '/email-templates', icon: EnvelopeIcon },
+  { name: 'Templates Lettre', href: '/letter-templates', icon: DocumentDuplicateIcon },
   { name: 'Profil', href: '/profile', icon: UserIcon },
 ];
 
