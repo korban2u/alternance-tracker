@@ -77,9 +77,11 @@ const ApplicationForm = ({ initialData, onSubmit, onCancel }) => {
     validationSchema: Yup.object({
       type: Yup.string().required('Le type est requis'),
       company: Yup.string().required('L\'entreprise est requise'),
+      // Correction de la validation conditionnelle avec otherwise
       offer: Yup.string().when('type', {
         is: 'offre',
-        then: Yup.string().required('L\'offre est requise')
+        then: (schema) => schema.required('L\'offre est requise'),
+        otherwise: (schema) => schema.notRequired()
       }),
       status: Yup.string().required('Le statut est requis'),
       documents: Yup.object({
@@ -104,7 +106,7 @@ const ApplicationForm = ({ initialData, onSubmit, onCancel }) => {
         ...values,
         nextActionDate: values.nextActionDate ? values.nextActionDate.toISOString() : null
       };
-      
+
       // Si c'est une nouvelle candidature, ajouter l'entrée initiale dans la timeline
       if (!initialData) {
         formattedValues.timeline = [{
@@ -113,7 +115,7 @@ const ApplicationForm = ({ initialData, onSubmit, onCancel }) => {
           notes: 'Candidature créée'
         }];
       }
-      
+
       onSubmit(formattedValues);
     }
   });
@@ -125,205 +127,205 @@ const ApplicationForm = ({ initialData, onSubmit, onCancel }) => {
   };
 
   return (
-    <form onSubmit={formik.handleSubmit}>
-      <div className="space-y-6">
-        {/* Type de candidature et entreprise */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div>
-            <label htmlFor="type" className="form-label">Type de candidature*</label>
-            <select
-              id="type"
-              name="type"
-              className="form-input"
-              value={formik.values.type}
-              onChange={handleTypeChange}
-            >
-              <option value="offre">Réponse à une offre</option>
-              <option value="spontanée">Candidature spontanée</option>
-            </select>
-          </div>
-          
-          <div>
-            <label htmlFor="company" className="form-label">Entreprise*</label>
-            <select
-              id="company"
-              name="company"
-              className={`form-input ${formik.touched.company && formik.errors.company ? 'border-red-300' : ''}`}
-              {...formik.getFieldProps('company')}
-              disabled={loading}
-            >
-              <option value="">Sélectionner une entreprise</option>
-              {companies.map(company => (
-                <option key={company._id} value={company._id}>
-                  {company.name}
-                </option>
-              ))}
-            </select>
-            {formik.touched.company && formik.errors.company && (
-              <p className="form-error">{formik.errors.company}</p>
-            )}
-          </div>
-        </div>
+      <form onSubmit={formik.handleSubmit}>
+        <div className="space-y-6">
+          {/* Type de candidature et entreprise */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div>
+              <label htmlFor="type" className="form-label">Type de candidature*</label>
+              <select
+                  id="type"
+                  name="type"
+                  className="form-input"
+                  value={formik.values.type}
+                  onChange={handleTypeChange}
+              >
+                <option value="offre">Réponse à une offre</option>
+                <option value="spontanée">Candidature spontanée</option>
+              </select>
+            </div>
 
-        {/* Offre (si type = offre) */}
-        {formik.values.type === 'offre' && (
+            <div>
+              <label htmlFor="company" className="form-label">Entreprise*</label>
+              <select
+                  id="company"
+                  name="company"
+                  className={`form-input ${formik.touched.company && formik.errors.company ? 'border-red-300' : ''}`}
+                  {...formik.getFieldProps('company')}
+                  disabled={loading}
+              >
+                <option value="">Sélectionner une entreprise</option>
+                {companies.map(company => (
+                    <option key={company._id} value={company._id}>
+                      {company.name}
+                    </option>
+                ))}
+              </select>
+              {formik.touched.company && formik.errors.company && (
+                  <p className="form-error">{formik.errors.company}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Offre (si type = offre) */}
+          {formik.values.type === 'offre' && (
+              <div>
+                <label htmlFor="offer" className="form-label">Offre associée*</label>
+                <select
+                    id="offer"
+                    name="offer"
+                    className={`form-input ${formik.touched.offer && formik.errors.offer ? 'border-red-300' : ''}`}
+                    {...formik.getFieldProps('offer')}
+                    disabled={loading}
+                >
+                  <option value="">Sélectionner une offre</option>
+                  {offers
+                      .filter(offer => !formik.values.company || offer.company === formik.values.company || offer.company._id === formik.values.company)
+                      .map(offer => (
+                          <option key={offer._id} value={offer._id}>
+                            {offer.title}
+                          </option>
+                      ))
+                  }
+                </select>
+                {formik.touched.offer && formik.errors.offer && (
+                    <p className="form-error">{formik.errors.offer}</p>
+                )}
+              </div>
+          )}
+
+          {/* Statut */}
           <div>
-            <label htmlFor="offer" className="form-label">Offre associée*</label>
+            <label htmlFor="status" className="form-label">Statut*</label>
             <select
-              id="offer"
-              name="offer"
-              className={`form-input ${formik.touched.offer && formik.errors.offer ? 'border-red-300' : ''}`}
-              {...formik.getFieldProps('offer')}
-              disabled={loading}
+                id="status"
+                name="status"
+                className="form-input"
+                {...formik.getFieldProps('status')}
             >
-              <option value="">Sélectionner une offre</option>
-              {offers
-                .filter(offer => !formik.values.company || offer.company === formik.values.company || offer.company._id === formik.values.company)
-                .map(offer => (
-                  <option key={offer._id} value={offer._id}>
-                    {offer.title}
-                  </option>
-                ))
+              <option value="à envoyer">À envoyer</option>
+              <option value="envoyée">Envoyée</option>
+              <option value="relance effectuée">Relance effectuée</option>
+              <option value="entretien planifié">Entretien planifié</option>
+              <option value="en attente de réponse">En attente de réponse</option>
+              <option value="acceptée">Acceptée</option>
+              <option value="refusée">Refusée</option>
+            </select>
+          </div>
+
+          {/* Documents */}
+          <div>
+            <h4 className="form-label mb-3">Documents</h4>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <input
+                    type="checkbox"
+                    id="documents.cv.sent"
+                    name="documents.cv.sent"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    checked={formik.values.documents.cv.sent}
+                    onChange={formik.handleChange}
+                />
+                <label htmlFor="documents.cv.sent" className="ml-3 text-sm text-gray-700">
+                  CV envoyé
+                </label>
+                <input
+                    type="text"
+                    id="documents.cv.version"
+                    name="documents.cv.version"
+                    className="ml-3 form-input"
+                    placeholder="Version (ex: v1, v2...)"
+                    {...formik.getFieldProps('documents.cv.version')}
+                />
+              </div>
+              <div className="flex items-center">
+                <input
+                    type="checkbox"
+                    id="documents.coverLetter.sent"
+                    name="documents.coverLetter.sent"
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                    checked={formik.values.documents.coverLetter.sent}
+                    onChange={formik.handleChange}
+                />
+                <label htmlFor="documents.coverLetter.sent" className="ml-3 text-sm text-gray-700">
+                  Lettre de motivation envoyée
+                </label>
+                <input
+                    type="text"
+                    id="documents.coverLetter.version"
+                    name="documents.coverLetter.version"
+                    className="ml-3 form-input"
+                    placeholder="Version (ex: v1, v2...)"
+                    {...formik.getFieldProps('documents.coverLetter.version')}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Prochaine action */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label htmlFor="nextAction" className="form-label">Prochaine action</label>
+              <input
+                  type="text"
+                  id="nextAction"
+                  name="nextAction"
+                  className="form-input"
+                  placeholder="ex: Relancer par email, Préparer l'entretien..."
+                  {...formik.getFieldProps('nextAction')}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="nextActionDate" className="form-label">Date de la prochaine action</label>
+              <DatePicker
+                  selected={formik.values.nextActionDate}
+                  onChange={(date) => formik.setFieldValue('nextActionDate', date)}
+                  className="form-input w-full"
+                  dateFormat="dd/MM/yyyy"
+                  isClearable
+                  placeholderText="Sélectionner une date (optionnel)"
+              />
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label htmlFor="notes" className="form-label">Notes</label>
+            <textarea
+                id="notes"
+                name="notes"
+                rows="4"
+                className="form-input"
+                placeholder="Notes supplémentaires sur cette candidature..."
+                {...formik.getFieldProps('notes')}
+            ></textarea>
+          </div>
+
+          {/* Boutons d'action */}
+          <div className="flex justify-end space-x-3">
+            <button
+                type="button"
+                onClick={onCancel}
+                className="btn btn-secondary"
+            >
+              Annuler
+            </button>
+            <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={formik.isSubmitting}
+            >
+              {formik.isSubmitting
+                  ? 'Enregistrement...'
+                  : initialData
+                      ? 'Mettre à jour'
+                      : 'Enregistrer'
               }
-            </select>
-            {formik.touched.offer && formik.errors.offer && (
-              <p className="form-error">{formik.errors.offer}</p>
-            )}
-          </div>
-        )}
-
-        {/* Statut */}
-        <div>
-          <label htmlFor="status" className="form-label">Statut*</label>
-          <select
-            id="status"
-            name="status"
-            className="form-input"
-            {...formik.getFieldProps('status')}
-          >
-            <option value="à envoyer">À envoyer</option>
-            <option value="envoyée">Envoyée</option>
-            <option value="relance effectuée">Relance effectuée</option>
-            <option value="entretien planifié">Entretien planifié</option>
-            <option value="en attente de réponse">En attente de réponse</option>
-            <option value="acceptée">Acceptée</option>
-            <option value="refusée">Refusée</option>
-          </select>
-        </div>
-
-        {/* Documents */}
-        <div>
-          <h4 className="form-label mb-3">Documents</h4>
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="documents.cv.sent"
-                name="documents.cv.sent"
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                checked={formik.values.documents.cv.sent}
-                onChange={formik.handleChange}
-              />
-              <label htmlFor="documents.cv.sent" className="ml-3 text-sm text-gray-700">
-                CV envoyé
-              </label>
-              <input
-                type="text"
-                id="documents.cv.version"
-                name="documents.cv.version"
-                className="ml-3 form-input"
-                placeholder="Version (ex: v1, v2...)"
-                {...formik.getFieldProps('documents.cv.version')}
-              />
-            </div>
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="documents.coverLetter.sent"
-                name="documents.coverLetter.sent"
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                checked={formik.values.documents.coverLetter.sent}
-                onChange={formik.handleChange}
-              />
-              <label htmlFor="documents.coverLetter.sent" className="ml-3 text-sm text-gray-700">
-                Lettre de motivation envoyée
-              </label>
-              <input
-                type="text"
-                id="documents.coverLetter.version"
-                name="documents.coverLetter.version"
-                className="ml-3 form-input"
-                placeholder="Version (ex: v1, v2...)"
-                {...formik.getFieldProps('documents.coverLetter.version')}
-              />
-            </div>
+            </button>
           </div>
         </div>
-
-        {/* Prochaine action */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <label htmlFor="nextAction" className="form-label">Prochaine action</label>
-            <input
-              type="text"
-              id="nextAction"
-              name="nextAction"
-              className="form-input"
-              placeholder="ex: Relancer par email, Préparer l'entretien..."
-              {...formik.getFieldProps('nextAction')}
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="nextActionDate" className="form-label">Date de la prochaine action</label>
-            <DatePicker
-              selected={formik.values.nextActionDate}
-              onChange={(date) => formik.setFieldValue('nextActionDate', date)}
-              className="form-input w-full"
-              dateFormat="dd/MM/yyyy"
-              isClearable
-              placeholderText="Sélectionner une date (optionnel)"
-            />
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label htmlFor="notes" className="form-label">Notes</label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows="4"
-            className="form-input"
-            placeholder="Notes supplémentaires sur cette candidature..."
-            {...formik.getFieldProps('notes')}
-          ></textarea>
-        </div>
-
-        {/* Boutons d'action */}
-        <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="btn btn-secondary"
-          >
-            Annuler
-          </button>
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={formik.isSubmitting}
-          >
-            {formik.isSubmitting 
-              ? 'Enregistrement...' 
-              : initialData 
-                ? 'Mettre à jour' 
-                : 'Enregistrer'
-            }
-          </button>
-        </div>
-      </div>
-    </form>
+      </form>
   );
 };
 
