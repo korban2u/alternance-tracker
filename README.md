@@ -46,7 +46,11 @@ AltTracker est une application web qui simplifie ta recherche de stage ou d'alte
 ## 🖥️ Captures d'écran
 
 <div align="center">
-  <i>Captures d'écran à venir</i>
+    <img src="documents/captures/Capture_1.png" alt="Tableau de bord" width="600"/>
+    <img src="documents/captures/Capture_2.png" alt="Tableau de bord 2" width="600"/>
+    <img src="documents/captures/Capture_3.png" alt="Entreprises" width="600"/>
+    <img src="documents/captures/Capture_4.png" alt="Documents" width="600"/>
+    <img src="documents/captures/Capture_5.png" alt="Rappels" width="600"/>
 </div>
 
 ## 🔧 Technologies utilisées
