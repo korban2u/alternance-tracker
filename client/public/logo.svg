@@ -1,35 +1,32 @@
-c<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dégradés -->
   <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7" />
-      <stop offset="100%" stop-color="#38bdf8" />
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
     </linearGradient>
   </defs>
-  
-  <!-- Fond -->
-  <rect x="56" y="56" width="400" height="400" rx="60" fill="white" stroke="url(#gradient)" stroke-width="16" />
-  
-  <!-- Dessin principal (dossier et graphique) -->
-  <g transform="translate(100, 100)">
-    <!-- Dossier -->
-    <path d="M40 60 L100 60 L120 40 L260 40 L260 240 L40 240 Z" fill="#0ea5e9" opacity="0.8" />
-    
-    <!-- Documents dans le dossier -->
-    <rect x="70" y="80" width="160" height="20" rx="4" fill="white" />
-    <rect x="70" y="110" width="160" height="20" rx="4" fill="white" />
-    <rect x="70" y="140" width="100" height="20" rx="4" fill="white" />
-    
-    <!-- Graphique croissant -->
-    <polyline points="40,200 90,170 140,180 190,130 240,100" stroke="#10b981" stroke-width="8" fill="none" stroke-linecap="round" />
-    
-    <!-- Coche -->
-    <circle cx="240" cy="100" r="16" fill="#10b981" />
-    <path d="M232 100 L238 106 L248 96" stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round" />
-  </g>
-  
-  <!-- Texte "ALT" -->
-  <g transform="translate(140, 360)">
-    <text x="0" y="0" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#0284c7">ALT</text>
-    <text x="110" y="0" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#64748b">TRACKER</text>
+
+  <!-- Fond carré avec bordure arrondie -->
+  <rect x="0" y="0" width="512" height="512" rx="80" fill="#f8fafc" />
+
+  <!-- Grand A pour Alt -->
+  <text x="140" y="380" font-family="Arial, sans-serif" font-size="320" font-weight="bold" fill="url(#primaryGradient)">A</text>
+
+  <!-- Éléments du logo -->
+  <g transform="translate(280, 180)">
+    <!-- Document stylisé -->
+    <rect x="0" y="0" width="120" height="160" rx="12" fill="white" stroke="#64748b" stroke-width="6" />
+
+    <!-- Graphique de progression croissante -->
+    <polyline points="15,110 35,90 60,100 85,70 105,50" stroke="url(#primaryGradient)" stroke-width="10" fill="none" stroke-linecap="round" />
+
+    <!-- Coche dans un cercle -->
+    <circle cx="50" cy="50" r="30" fill="url(#accentGradient)" />
+    <path d="M35 50 L45 60 L65 35" stroke="white" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round" />
   </g>
 </svg>
