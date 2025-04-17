@@ -17,6 +17,8 @@ import {
 } from '@heroicons/react/24/outline';
 import ApplicationForm from '../components/applications/ApplicationForm';
 import TimelineEntryForm from '../components/applications/TimelineEntryForm';
+import EmailComposer from '../components/gmail/EmailComposer';
+import { EnvelopeIcon } from '@heroicons/react/24/outline';
 
 const ApplicationDetail = () => {
   const { id } = useParams();
@@ -131,6 +133,8 @@ const ApplicationDetail = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const [isEmailComposerOpen, setIsEmailComposerOpen] = useState(false);
 
   if (loading) {
     return (
@@ -364,11 +368,19 @@ const ApplicationDetail = () => {
             </div>
             <div className="px-4 py-4 sm:px-6 bg-gray-50">
               <button
-                onClick={() => setIsTimelineModalOpen(true)}
-                className="btn btn-primary w-full flex items-center justify-center"
+                  onClick={() => setIsTimelineModalOpen(true)}
+                  className="btn btn-primary w-full flex items-center justify-center"
               >
-                <PlusIcon className="h-5 w-5 mr-2" />
+                <PlusIcon className="h-5 w-5 mr-2"/>
                 Ajouter une entrée au journal
+              </button>
+
+              <button
+                  onClick={() => setIsEmailComposerOpen(true)}
+                  className="btn btn-primary flex items-center"
+              >
+                <EnvelopeIcon className="h-5 w-5 mr-2"/>
+                Envoyer un email
               </button>
             </div>
           </div>
@@ -472,6 +484,16 @@ const ApplicationDetail = () => {
             </div>
           </div>
         </div>
+      )}
+      {isEmailComposerOpen && application && (
+          <EmailComposer
+              initialTo={application.company?.contacts?.[0]?.email || ''}
+              initialSubject={`Candidature - ${application.offer?.title || 'Candidature spontanée'}`}
+              applicationId={application._id}
+              companyId={application.company?._id || application.company}
+              onClose={() => setIsEmailComposerOpen(false)}
+              onSent={() => fetchApplicationData()} // Pour rafraîchir les données après l'envoi
+          />
       )}
     </div>
   );

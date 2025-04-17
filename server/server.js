@@ -1,3 +1,7 @@
+require('dotenv').config();
+console.log("Après chargement de dotenv:");
+console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
+console.log("GOOGLE_REDIRECT_URI:", process.env.GOOGLE_REDIRECT_URI);
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -16,7 +20,7 @@ const letterTemplateRoutes = require('./routes/letterTemplateRoutes');
 const reminderRoutes = require('./routes/reminderRoutes');
 const documentRoutes = require('./routes/documentRoutes');
 const importRoutes = require('./routes/importRoutes');
-
+const gmailRoutes = require('./routes/gmailRoutes');
 // Configuration
 dotenv.config();
 const app = express();
@@ -56,6 +60,7 @@ app.use('/api/letter-templates', letterTemplateRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/documents', documentRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/gmail', gmailRoutes);
 
 // Servir les uploads de manière statique
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
