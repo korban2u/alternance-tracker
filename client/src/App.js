@@ -1,3 +1,5 @@
+// Modifiez votre fichier client/src/App.js comme suit:
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
@@ -25,6 +27,9 @@ import Documents from './pages/Documents';
 import EmailTemplates from './pages/EmailTemplates';
 import LetterTemplates from './pages/LetterTemplates';
 
+// Importer la page GmailComplete
+import GmailComplete from './pages/GmailComplete';
+
 const App = () => {
     const { isAuthenticated, loading } = useAuth();
 
@@ -45,6 +50,9 @@ const App = () => {
         <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+
+            {/* Ajout de la route Gmail Complete en dehors des routes protégées */}
+            <Route path="/gmail-complete" element={<GmailComplete />} />
 
             <Route path="/" element={
                 <ProtectedRoute>

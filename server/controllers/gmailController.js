@@ -3,6 +3,8 @@ const GmailAuth = require('../models/GmailAuth');
 const Application = require('../models/Application');
 const Company = require('../models/Company');
 const EmailTemplate = require('../models/EmailTemplate');
+const mongoose = require('mongoose');
+const TempGmailAuth = require('../models/TempGmailAuth');
 
 // Configuration OAuth2
 const oauth2Client = new google.auth.OAuth2(
@@ -75,17 +77,6 @@ exports.handleAuthCallback = async (req, res) => {
         // Générer un identifiant unique pour cette session
         const sessionId = require('crypto').randomBytes(16).toString('hex');
 
-        // Créer un document temporaire dans la collection TempGmailAuth
-        // Note: vous devrez créer ce modèle
-        const TempGmailAuth = mongoose.model('TempGmailAuth', new mongoose.Schema({
-            sessionId: String,
-            email: String,
-            accessToken: String,
-            refreshToken: String,
-            expiryDate: Date,
-            createdAt: { type: Date, default: Date.now, expires: 3600 } // expire après 1 heure
-        }));
-
         await TempGmailAuth.create({
             sessionId,
             email,
@@ -94,12 +85,13 @@ exports.handleAuthCallback = async (req, res) => {
             expiryDate: new Date(tokens.expiry_date)
         });
 
+
         // Rediriger vers une page de finalisation où l'utilisateur est authentifié
         // incluant le sessionId dans l'URL
-        res.redirect(`/gmail-complete?sessionId=${sessionId}`);
+        res.redirect(`http://localhost:3000/gmail-complete?sessionId=${sessionId}`);
     } catch (error) {
         console.error('Error in auth callback:', error);
-        res.redirect('/profile?error=gmail_auth_failed');
+        res.redirect('http://localhost:3000/profile?error=gmail_auth_failed');
     }
 };
 

@@ -5,7 +5,7 @@ const {
     sendEmail,
     saveDraft,
     checkAuthStatus,
-    disconnectGmail
+    disconnectGmail, completeGmailAuth,
 } = require('../controllers/gmailController');
 const { protect } = require('../middleware/auth');
 
@@ -25,5 +25,6 @@ router.delete('/auth', disconnectGmail);
 // Routes d'envoi d'emails
 router.post('/send', sendEmail);
 router.post('/draft', saveDraft);
+router.post('/auth/complete', protect, completeGmailAuth);
 
 module.exports = router;
