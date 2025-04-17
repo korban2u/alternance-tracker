@@ -35,6 +35,12 @@ const EmailComposer = ({
     const [companyContacts, setCompanyContacts] = useState([]);
     const [checkingConnection, setCheckingConnection] = useState(true);
 
+    // États pour la gestion des variables de template
+    const [currentTemplate, setCurrentTemplate] = useState(null);
+    const [templateVariables, setTemplateVariables] = useState([]);
+    const [variableValues, setVariableValues] = useState({});
+    const [showVariableForm, setShowVariableForm] = useState(false);
+
     useEffect(() => {
         checkGmailConnection();
         fetchTemplates();
@@ -43,6 +49,23 @@ const EmailComposer = ({
             fetchCompanyContacts();
         }
     }, [companyId]);
+
+    useEffect(() => {
+        // Préremplir certaines variables si nous avons les informations de l'entreprise
+        if (currentTemplate && currentTemplate.variables && companyId) {
+            const company = companyContacts.length > 0 ? { name: companyContacts[0].name } : null;
+            const prefilledValues = { ...variableValues };
+
+            currentTemplate.variables.forEach(variable => {
+                if (variable.key === 'company' && company) {
+                    prefilledValues.company = company.name;
+                }
+                // D'autres préremplissages automatiques peuvent être ajoutés ici
+            });
+
+            setVariableValues(prefilledValues);
+        }
+    }, [currentTemplate, companyId, companyContacts]);
 
     const checkGmailConnection = async () => {
         try {
@@ -88,32 +111,89 @@ const EmailComposer = ({
         const templateId = e.target.value;
         setSelectedTemplate(templateId);
 
-        if (!templateId) return;
+        if (!templateId) {
+            setCurrentTemplate(null);
+            setTemplateVariables([]);
+            setShowVariableForm(false);
+            return;
+        }
 
         try {
             const response = await axios.get(`/api/email-templates/${templateId}`);
 
             if (response.data.success) {
                 const template = response.data.data;
+                setCurrentTemplate(template);
 
-                // Préparer un objet avec les variables à remplacer si nécessaire
-                let variables = {};
-
-                // Générer le contenu avec les variables
+                // Initialiser les variables du template
                 if (template.variables && template.variables.length > 0) {
-                    // Ici, vous pourriez implémenter une logique pour collecter les valeurs des variables
-                    // Pour l'instant, on utilise simplement le template brut
-                }
+                    setTemplateVariables(template.variables);
+                    setShowVariableForm(true);
 
-                setEmailData({
-                    ...emailData,
-                    subject: template.subject,
-                    body: template.content,
-                    isHtml: template.content.includes('<') && template.content.includes('>')
-                });
+                    // Initialiser les valeurs des variables
+                    const initialValues = {};
+                    template.variables.forEach(variable => {
+                        initialValues[variable.key] = '';
+                    });
+                    setVariableValues(initialValues);
+                } else {
+                    setTemplateVariables([]);
+                    setShowVariableForm(false);
+
+                    // Si pas de variables, appliquer directement le template
+                    setEmailData({
+                        ...emailData,
+                        subject: template.subject,
+                        body: template.content,
+                        isHtml: template.content.includes('<') && template.content.includes('>')
+                    });
+                }
             }
         } catch (error) {
             console.error('Erreur lors du chargement du template:', error);
+        }
+    };
+
+    const handleVariableChange = (key, value) => {
+        setVariableValues({
+            ...variableValues,
+            [key]: value
+        });
+    };
+
+    const applyTemplate = async () => {
+        if (!currentTemplate) return;
+
+        try {
+            // Si le template a des variables, les remplacer
+            if (templateVariables.length > 0) {
+                const response = await axios.post(`/api/email-templates/${currentTemplate._id}/generate`, {
+                    variables: variableValues
+                });
+
+                if (response.data.success) {
+                    setEmailData({
+                        ...emailData,
+                        subject: response.data.data.subject,
+                        body: response.data.data.content,
+                        isHtml: currentTemplate.content.includes('<') && currentTemplate.content.includes('>')
+                    });
+
+                    setShowVariableForm(false);
+                    toast.success('Template appliqué avec succès');
+                }
+            } else {
+                // Pas de variables, appliquer directement
+                setEmailData({
+                    ...emailData,
+                    subject: currentTemplate.subject,
+                    body: currentTemplate.content,
+                    isHtml: currentTemplate.content.includes('<') && currentTemplate.content.includes('>')
+                });
+            }
+        } catch (error) {
+            console.error('Erreur lors de l\'application du template:', error);
+            toast.error('Erreur lors de l\'application du template');
         }
     };
 
@@ -306,6 +386,39 @@ const EmailComposer = ({
                                 </div>
                             )}
                         </div>
+
+                        {/* Formulaire de variables si un template avec variables est sélectionné */}
+                        {showVariableForm && templateVariables.length > 0 && (
+                            <div className="bg-blue-50 p-4 rounded-lg">
+                                <h4 className="text-sm font-medium text-blue-800 mb-3">Variables du template</h4>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    {templateVariables.map((variable, index) => (
+                                        <div key={index}>
+                                            <label htmlFor={`var-${variable.key}`} className="block text-sm font-medium text-gray-700">
+                                                {variable.description || variable.key}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id={`var-${variable.key}`}
+                                                className="mt-1 form-input text-sm"
+                                                placeholder={`Valeur pour ${variable.key}`}
+                                                value={variableValues[variable.key] || ''}
+                                                onChange={(e) => handleVariableChange(variable.key, e.target.value)}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-3 text-right">
+                                    <button
+                                        type="button"
+                                        onClick={applyTemplate}
+                                        className="btn btn-primary text-sm"
+                                    >
+                                        Appliquer le template
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Destinataires */}
                         <div>
