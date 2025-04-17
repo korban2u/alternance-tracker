@@ -4,7 +4,7 @@
   <img src="client/public/logo192.png" alt="Logo AltTracker" width="200"/>
   <h3>Un système de suivi de candidatures</h3>
 
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![React](https://img.shields.io/badge/React-17.0.2-61DAFB?logo=react)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-14+-339933?logo=node.js)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-4.4+-47A248?logo=mongodb)](https://www.mongodb.com/)
@@ -174,12 +174,10 @@ alternance-tracker/
 
 ## 📄 Licence
 
-Ce projet est sous licence ISC - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+Ce projet est sous licence MIT - voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
 ---
 
 ## 👤 Auteur
 
 **Ryan Korban**
-
-
