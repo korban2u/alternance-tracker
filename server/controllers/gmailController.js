@@ -4,20 +4,11 @@ const Application = require('../models/Application');
 const Company = require('../models/Company');
 const EmailTemplate = require('../models/EmailTemplate');
 
-// Valeurs hardcodées pour le test
-const CLIENT_ID = '873225104151-u2gjd91tfas6e8c9pskas9j728elc5ja.apps.googleusercontent.com';
-const CLIENT_SECRET = 'GOCSPX-your-client-secret-here'; // Remplacez par votre client secret
-const REDIRECT_URI = 'http://localhost:5000/api/gmail/auth/callback';
-
-console.log('Utilisation des credentials hardcodés:');
-console.log('CLIENT_ID:', CLIENT_ID);
-console.log('REDIRECT_URI:', REDIRECT_URI);
-
-// Configuration OAuth2 avec les valeurs hardcodées
+// Configuration OAuth2
 const oauth2Client = new google.auth.OAuth2(
-    CLIENT_ID,
-    CLIENT_SECRET,
-    REDIRECT_URI
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.GOOGLE_REDIRECT_URI
 );
 
 // Portée des autorisations demandées
@@ -32,22 +23,17 @@ const SCOPES = [
 // @access  Private
 exports.getAuthUrl = async (req, res) => {
     try {
-        console.log('Generating auth URL with hardcoded client ID');
-
         const authUrl = oauth2Client.generateAuthUrl({
             access_type: 'offline',
             scope: SCOPES,
             prompt: 'consent' // Force à obtenir un refresh token
         });
 
-        console.log('Generated auth URL:', authUrl);
-
         res.status(200).json({
             success: true,
             data: { authUrl }
         });
     } catch (error) {
-        console.error('Error generating auth URL:', error);
         res.status(500).json({
             success: false,
             message: error.message
@@ -57,7 +43,7 @@ exports.getAuthUrl = async (req, res) => {
 
 // @desc    Gérer le callback d'authentification Google
 // @route   GET /api/gmail/auth/callback
-// @access  Private
+// @access  Public
 exports.handleAuthCallback = async (req, res) => {
     const { code } = req.query;
 
@@ -81,33 +67,97 @@ exports.handleAuthCallback = async (req, res) => {
 
         console.log('Authenticated with email:', email);
 
-        // Enregistrer ou mettre à jour les tokens dans la base de données
-        let gmailAuth = await GmailAuth.findOne({ user: req.user._id });
+        // Stocker temporairement les tokens dans la session
+        // Comme nous ne pouvons pas accéder à req.user, nous allons stocker
+        // les tokens dans un objet temporaire en base de données
+        // avec un identifiant unique que nous passerons à l'URL de redirection
 
-        if (gmailAuth) {
-            gmailAuth.email = email;
-            gmailAuth.accessToken = tokens.access_token;
-            if (tokens.refresh_token) {
-                gmailAuth.refreshToken = tokens.refresh_token;
-            }
-            gmailAuth.expiryDate = new Date(tokens.expiry_date);
-            await gmailAuth.save();
-        } else {
-            await GmailAuth.create({
-                user: req.user._id,
-                email,
-                accessToken: tokens.access_token,
-                refreshToken: tokens.refresh_token,
-                expiryDate: new Date(tokens.expiry_date)
+        // Générer un identifiant unique pour cette session
+        const sessionId = require('crypto').randomBytes(16).toString('hex');
+
+        // Créer un document temporaire dans la collection TempGmailAuth
+        // Note: vous devrez créer ce modèle
+        const TempGmailAuth = mongoose.model('TempGmailAuth', new mongoose.Schema({
+            sessionId: String,
+            email: String,
+            accessToken: String,
+            refreshToken: String,
+            expiryDate: Date,
+            createdAt: { type: Date, default: Date.now, expires: 3600 } // expire après 1 heure
+        }));
+
+        await TempGmailAuth.create({
+            sessionId,
+            email,
+            accessToken: tokens.access_token,
+            refreshToken: tokens.refresh_token,
+            expiryDate: new Date(tokens.expiry_date)
+        });
+
+        // Rediriger vers une page de finalisation où l'utilisateur est authentifié
+        // incluant le sessionId dans l'URL
+        res.redirect(`/gmail-complete?sessionId=${sessionId}`);
+    } catch (error) {
+        console.error('Error in auth callback:', error);
+        res.redirect('/profile?error=gmail_auth_failed');
+    }
+};
+
+// @desc    Finaliser l'authentification Gmail après redirection
+// @route   POST /api/gmail/auth/complete
+// @access  Private
+exports.completeGmailAuth = async (req, res) => {
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+        return res.status(400).json({
+            success: false,
+            message: 'Session ID manquant'
+        });
+    }
+
+    try {
+        // Récupérer les informations temporaires
+        const TempGmailAuth = mongoose.model('TempGmailAuth');
+        const tempAuth = await TempGmailAuth.findOne({ sessionId });
+
+        if (!tempAuth) {
+            return res.status(404).json({
+                success: false,
+                message: 'Session expirée ou invalide'
             });
         }
 
+        // Vérifier si l'utilisateur a déjà une authentification Gmail
+        let gmailAuth = await GmailAuth.findOne({ user: req.user._id });
+
+        if (gmailAuth) {
+            // Mettre à jour l'authentification existante
+            gmailAuth.email = tempAuth.email;
+            gmailAuth.accessToken = tempAuth.accessToken;
+            gmailAuth.refreshToken = tempAuth.refreshToken;
+            gmailAuth.expiryDate = tempAuth.expiryDate;
+            await gmailAuth.save();
+        } else {
+            // Créer une nouvelle authentification Gmail
+            await GmailAuth.create({
+                user: req.user._id,
+                email: tempAuth.email,
+                accessToken: tempAuth.accessToken,
+                refreshToken: tempAuth.refreshToken,
+                expiryDate: tempAuth.expiryDate
+            });
+        }
+
+        // Supprimer les informations temporaires
+        await TempGmailAuth.deleteOne({ sessionId });
+
         res.status(200).json({
             success: true,
-            data: { email }
+            data: { email: tempAuth.email }
         });
     } catch (error) {
-        console.error('Error in auth callback:', error);
+        console.error('Error completing Gmail auth:', error);
         res.status(500).json({
             success: false,
             message: error.message
