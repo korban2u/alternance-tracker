@@ -369,7 +369,7 @@ const ApplicationDetail = () => {
             <div className="px-4 py-4 sm:px-6 bg-gray-50">
               <button
                   onClick={() => setIsTimelineModalOpen(true)}
-                  className="btn btn-primary w-full flex items-center justify-center"
+                  className="btn btn-primary w-full flex items-center justify-center mb-3"
               >
                 <PlusIcon className="h-5 w-5 mr-2"/>
                 Ajouter une entrée au journal
@@ -377,7 +377,7 @@ const ApplicationDetail = () => {
 
               <button
                   onClick={() => setIsEmailComposerOpen(true)}
-                  className="btn btn-primary flex items-center"
+                  className="btn btn-primary flex items-center w-full"
               >
                 <EnvelopeIcon className="h-5 w-5 mr-2"/>
                 Envoyer un email
