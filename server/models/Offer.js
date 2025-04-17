@@ -47,6 +47,11 @@ const offerSchema = new mongoose.Schema({
     enum: ['active', 'expirée', 'pourvue'],
     default: 'active'
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   sourceUrl: {
     type: String,
     trim: true

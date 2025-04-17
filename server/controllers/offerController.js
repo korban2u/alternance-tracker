@@ -5,12 +5,19 @@ const Offer = require('../models/Offer');
 // @access  Private
 exports.createOffer = async (req, res) => {
   try {
-    const offer = await Offer.create(req.body);
+    // Ajouter l'ID utilisateur aux données
+    const offerData = {
+      ...req.body,
+      user: req.user._id
+    };
+    
+    const offer = await Offer.create(offerData);
     res.status(201).json({
       success: true,
       data: offer
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -23,13 +30,15 @@ exports.createOffer = async (req, res) => {
 // @access  Private
 exports.getOffers = async (req, res) => {
   try {
-    const offers = await Offer.find({}).populate('company', 'name sector');
+    // Filtrer par utilisateur
+    const offers = await Offer.find({ user: req.user._id }).populate('company', 'name sector');
     res.status(200).json({
       success: true,
       count: offers.length,
       data: offers
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -42,7 +51,11 @@ exports.getOffers = async (req, res) => {
 // @access  Private
 exports.getOfferById = async (req, res) => {
   try {
-    const offer = await Offer.findById(req.params.id).populate('company');
+    // Filtrer par utilisateur
+    const offer = await Offer.findOne({ 
+      _id: req.params.id,
+      user: req.user._id
+    }).populate('company');
     
     if (!offer) {
       return res.status(404).json({
@@ -56,6 +69,7 @@ exports.getOfferById = async (req, res) => {
       data: offer
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -68,19 +82,22 @@ exports.getOfferById = async (req, res) => {
 // @access  Private
 exports.updateOffer = async (req, res) => {
   try {
-    const offer = await Offer.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
+    const offer = await Offer.findOneAndUpdate(
+        {
+          _id: req.params.id,
+          user: req.user._id
+        },
+        req.body,
+        { new: true, runValidators: true }
     );
-    
+
     if (!offer) {
       return res.status(404).json({
         success: false,
         message: 'Offre non trouvée'
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: offer
@@ -98,15 +115,18 @@ exports.updateOffer = async (req, res) => {
 // @access  Private
 exports.deleteOffer = async (req, res) => {
   try {
-    const offer = await Offer.findByIdAndDelete(req.params.id);
-    
+    const offer = await Offer.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id
+    });
+
     if (!offer) {
       return res.status(404).json({
         success: false,
         message: 'Offre non trouvée'
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: {}

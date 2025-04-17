@@ -5,12 +5,19 @@ const Company = require('../models/Company');
 // @access  Private
 exports.createCompany = async (req, res) => {
   try {
-    const company = await Company.create(req.body);
+    // Ajouter l'ID utilisateur aux données
+    const companyData = {
+      ...req.body,
+      user: req.user._id
+    };
+    
+    const company = await Company.create(companyData);
     res.status(201).json({
       success: true,
       data: company
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -23,13 +30,15 @@ exports.createCompany = async (req, res) => {
 // @access  Private
 exports.getCompanies = async (req, res) => {
   try {
-    const companies = await Company.find({});
+    // Filtrer par utilisateur
+    const companies = await Company.find({ user: req.user._id });
     res.status(200).json({
       success: true,
       count: companies.length,
       data: companies
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -42,7 +51,11 @@ exports.getCompanies = async (req, res) => {
 // @access  Private
 exports.getCompanyById = async (req, res) => {
   try {
-    const company = await Company.findById(req.params.id);
+    // Filtrer par utilisateur
+    const company = await Company.findOne({
+      _id: req.params.id,
+      user: req.user._id
+    });
     
     if (!company) {
       return res.status(404).json({
@@ -56,6 +69,7 @@ exports.getCompanyById = async (req, res) => {
       data: company
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -68,7 +82,11 @@ exports.getCompanyById = async (req, res) => {
 // @access  Private
 exports.updateCompany = async (req, res) => {
   try {
-    const company = await Company.findByIdAndUpdate(
+    const company = await Company.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        user: req.user._id
+      },
       req.params.id,
       req.body,
       { new: true, runValidators: true }
@@ -96,17 +114,25 @@ exports.updateCompany = async (req, res) => {
 // @desc    Supprimer une entreprise
 // @route   DELETE /api/companies/:id
 // @access  Private
+
+// @desc    Supprimer une entreprise
+// @route   DELETE /api/companies/:id
+// @access  Private
 exports.deleteCompany = async (req, res) => {
   try {
-    const company = await Company.findByIdAndDelete(req.params.id);
-    
+    // Filtrer par utilisateur
+    const company = await Company.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id
+    });
+
     if (!company) {
       return res.status(404).json({
         success: false,
         message: 'Entreprise non trouvée'
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: {}

@@ -5,12 +5,19 @@ const Application = require('../models/Application');
 // @access  Private
 exports.createApplication = async (req, res) => {
   try {
-    const application = await Application.create(req.body);
+    // Ajouter l'ID utilisateur aux données
+    const applicationData = {
+      ...req.body,
+      user: req.user._id
+    };
+    
+    const application = await Application.create(applicationData);
     res.status(201).json({
       success: true,
       data: application
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -23,7 +30,8 @@ exports.createApplication = async (req, res) => {
 // @access  Private
 exports.getApplications = async (req, res) => {
   try {
-    const applications = await Application.find({})
+    // Filtrer par utilisateur
+    const applications = await Application.find({ user: req.user._id })
       .populate('company', 'name sector')
       .populate('offer', 'title location');
       
@@ -33,6 +41,7 @@ exports.getApplications = async (req, res) => {
       data: applications
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -45,7 +54,11 @@ exports.getApplications = async (req, res) => {
 // @access  Private
 exports.getApplicationById = async (req, res) => {
   try {
-    const application = await Application.findById(req.params.id)
+    // Filtrer par utilisateur
+    const application = await Application.findOne({ 
+      _id: req.params.id,
+      user: req.user._id
+    })
       .populate('company')
       .populate('offer');
     
@@ -61,6 +74,7 @@ exports.getApplicationById = async (req, res) => {
       data: application
     });
   } catch (error) {
+
     res.status(400).json({
       success: false,
       message: error.message
@@ -73,19 +87,22 @@ exports.getApplicationById = async (req, res) => {
 // @access  Private
 exports.updateApplication = async (req, res) => {
   try {
-    const application = await Application.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
+    const application = await Application.findOneAndUpdate(
+        {
+          _id: req.params.id,
+          user: req.user._id
+        },
+        req.body,
+        { new: true, runValidators: true }
     );
-    
+
     if (!application) {
       return res.status(404).json({
         success: false,
         message: 'Candidature non trouvée'
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: application
@@ -97,6 +114,7 @@ exports.updateApplication = async (req, res) => {
     });
   }
 };
+
 
 // @desc    Ajouter une entrée dans la timeline d'une candidature
 // @route   POST /api/applications/:id/timeline
@@ -132,15 +150,18 @@ exports.addTimelineEntry = async (req, res) => {
 // @access  Private
 exports.deleteApplication = async (req, res) => {
   try {
-    const application = await Application.findByIdAndDelete(req.params.id);
-    
+    const application = await Application.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id
+    });
+
     if (!application) {
       return res.status(404).json({
         success: false,
         message: 'Candidature non trouvée'
       });
     }
-    
+
     res.status(200).json({
       success: true,
       data: {}
